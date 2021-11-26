@@ -894,6 +894,11 @@ vue@^3.2.16:
     "@vue/server-renderer" "3.2.22"
     "@vue/shared" "3.2.22"
 
+vuse-rx@^0.13.1:
+  version "0.13.1"
+  resolved "https://registry.yarnpkg.com/vuse-rx/-/vuse-rx-0.13.1.tgz#6875ac29112711abde0ebcb7ffb9c1dd40faa3bb"
+  integrity sha512-Jg0BjqUObKTIrm8HmGmyj/h5tEb5UxVvp5wqVZu2GviUAsSDyMrV2nWZsJ5z/1cjNRmm9KkZH+eJNQS8ihLEUg==
+
 with@^7.0.0:
   version "7.0.2"
   resolved "https://registry.yarnpkg.com/with/-/with-7.0.2.tgz#ccee3ad542d25538a7a7a80aad212b9828495bac"

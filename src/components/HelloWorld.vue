@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref, Ref } from 'vue'
-import { animationFrames, animationFrameScheduler, interval, Observable, of, OperatorFunction, timer } from 'rxjs';
-import { combineLatest, endWith, map, takeWhile, throttle, throttleTime, withLatestFrom } from 'rxjs/operators';
+import { animationFrames, animationFrameScheduler, fromEvent, iif, interval, merge, Observable, of, OperatorFunction, timer } from 'rxjs';
+import { combineLatest, endWith, last, map, mergeMap, repeat, switchMap, takeUntil, takeWhile, throttle, throttleTime, withLatestFrom } from 'rxjs/operators';
 
 function update<A>(a: A, b: Partial<A>): A {
   let sin: any = {}
@@ -153,35 +153,70 @@ function easeInOutQuad(x: number): number {
   return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
 }
 
-setTimeout(() => {
-  tween(0, 1, 500)
-    .pipe(
-      map(easeInOutQuad),
-      throttleTime(50),
-      map(percent => zipped.map(l => lerpR(l[0], l[1], percent)))
-    )
-    .subscribe(rects => items.value = rects)
-}, 1000)
+// setTimeout(() => {
+//   tween(0, 1, 500)
+//     .pipe(
+//       map(easeInOutQuad),
+//       map(percent => zipped.map(l => lerpR(l[0], l[1], percent)))
+//     )
+//     .subscribe(rects => items.value = rects)
+// }, 1000)
+
+function latestWhile<T>(source: Observable<boolean>): (obs: Observable<T>) => Observable<T> {
+  return target => {
+    return new Observable(sub => {
+      let current: boolean | undefined
+      source.subscribe(val => current = val)
+      target.subscribe(wert => { if (current) sub.next(wert) })
+    })
+  }
+}
+
+interface Point {
+  x: number
+  y: number
+}
+
+const move$ = fromEvent(document, 'mousemove') as Observable<MouseEvent>
+const down$ = fromEvent(document, 'mousedown') as Observable<MouseEvent>
+const up$ = fromEvent(document, 'mouseup') as Observable<MouseEvent>
+const isDown$ = merge(
+  down$.pipe(map(_ => true)),
+  up$.pipe(map(_ => false))
+)
+const pos$: Observable<Point> = move$.pipe(map(ev => {
+  return {x: ev.clientX, y: ev.clientY}
+}))
+const lastPos$ = pos$.pipe(latestWhile(isDown$))
+
+const moved$ = lastPos$.pipe(
+  map(ev => ev.y / document.documentElement.clientHeight),
+  map(ev => 1 - ev),
+  map(easeInOutQuad),
+  map(percent => zipped.map(l => lerpR(l[0], l[1], percent)))
+).subscribe(rects => items.value = rects)
 
 defineProps<{ msg: string }>()
 
 </script>
 
 <template>
-  <div
-    class="window"
-    v-for="(item, index) in items"
-    :key="index"
-    :style="{
-      top: `${item.y}px`,
-      left: `${item.x}px`,
-      width: `${item.w}px`,
-      height: `${item.h}px`,
-      'z-index': items.length - item.n,
-      position: 'absolute',
-    }"
-    >
-    {{ item.n }}
+  <div id="bg">
+    <div
+      class="window"
+      v-for="(item, index) in items"
+      :key="index"
+      :style="{
+        top: `${item.y}px`,
+        left: `${item.x}px`,
+        width: `${item.w}px`,
+        height: `${item.h}px`,
+        'z-index': items.length - item.n,
+        position: 'absolute',
+      }"
+      >
+      {{ item.n }}
+    </div>
   </div>
 </template>
 
@@ -190,5 +225,11 @@ defineProps<{ msg: string }>()
   background-color: green;
   color: white;
   box-shadow: 3px 3px 20px rgba(0, 0, 0, 0.5);
+}
+#bg {
+  background-color: cyan;
+  width: 1000px;
+  height: 700px;
+  position: relative;
 }
 </style>

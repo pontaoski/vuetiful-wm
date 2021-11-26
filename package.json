@@ -9,7 +9,8 @@
   "dependencies": {
     "rxjs": "^7.4.0",
     "vue": "^3.2.16",
-    "vue-rx": "^6.2.0"
+    "vue-rx": "^6.2.0",
+    "vuse-rx": "^0.13.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^1.9.3",
